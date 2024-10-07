@@ -1,70 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" />
-        <link rel="stylesheet" href="src/styles/index.css" />
-    </head>
-    <body>
-        <div class="main-container">
-            <div class="box">
-                <span class="text">Projects</span>
-                <div class="section">
-                    <span class="text-2"
-                        >AI-Powered Climate Resilience Models 🌎<br /><br /></span
-                    ><span class="text-3"
-                        >A machine learning project designed to improve the resilience of
-                        crops to climate change. The model takes various factors such as
-                        soil composition, water availability, and weather patterns into
-                        account to provide farmers with detailed insights on how to optimize
-                        agricultural practices.</span
-                    >
-                </div>
-                <div class="section-2">
-                    <span class="text-4"
-                        >ACON: Adaptive Correlation Optimization Network 🌐<br /><br /></span
-                    ><span class="text-5"
-                        >ACON is a cutting-edge machine learning framework designed to
-                        autonomously find correlations and causations within unlabeled data
-                        sets. It’s built to scale for large datasets and can be used across
-                        industries such as finance, healthcare, and AI research to discover
-                        hidden patterns in data.</span
-                    >
-                </div>
-                <span class="text-6">Experience</span
-                ><span class="text-7">Torin Etheridge</span
-                ><span class="text-8"
-                    >AI applications engineer and full stack web developer</span
-                >
-            </div>
-            <div class="section-3">
-                <span class="text-9"
-                    >class TextDataset(Dataset):<br />
-                    def __init__(self, inputs, targets, tokenizer):<br />
-                    self.inputs = inputs<br />
-                    self.targets = targets<br />
-                    self.tokenizer = tokenizer<br /><br />
-                    def __len__(self):<br />
-                    return len(self.inputs)<br /><br />
-                    def __getitem__(self, idx):<br />
-                    input_seq = torch.tensor(self.tokenizer(self.inputs[idx]),
-                    dtype=torch.long)<br />
-                    target_seq = torch.tensor(self.tokenizer(self.targets[idx]),
-                    dtype=torch.long)<br />
-                    return input_seq, target_seq<br /><br /><br />def
-                    collate_fn(batch):<br />
-                    inputs, targets = zip(*batch)<br />
-                    inputs_padded = pad_sequence(inputs, batch_first=True,
-                    padding_value=0)<br />
-                    targets_padded = pad_sequence(targets, batch_first=True,
-                    padding_value=0)<br />
-                    return inputs_padded, targets_padded<br /></span
-                ><span class="text-a">Founder, CEO, at RDS AI Platforms</span
-                ><span class="text-b">Senior Engineer FTC #14251</span
-                ><span class="text-c">Lead Engineer, Eco Grow AI </span
-                ><span class="text-d">Student Panelist, AI + Education Summit VT</span>
-            </div>
-        </div>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trading Information</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+</head>
+<body>
+    <h1>Live Stock Information</h1>
+
+    <div id="stockChart" style="width: 800px; height: 400px;"></div>
+
+    <script>
+        const apiKey = "S5XWQMZ8L2XBQTIS"; // Replace with your Alpha Vantage API key
+        const chartDom = document.getElementById('stockChart');
+        const stockChart = echarts.init(chartDom);
+        const symbol = "AMZN"; // Only using AMZN for testing
+        const stockData = [];
+
+        const option = {
+            title: {
+                text: 'Stock Prices Over Time'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'time',
+                boundaryGap: false
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    formatter: '${value}'
+                },
+                min: function (value) {
+                    return value.min * 0.95; // Smaller intervals for better differences visualization
+                },
+                max: function (value) {
+                    return value.max * 1.05;
+                }
+            },
+            series: [
+                {
+                    name: symbol,
+                    type: 'line',
+                    data: stockData,
+                    smooth: true,
+                    symbol: 'none'
+                }
+            ]
+        };
+
+        stockChart.setOption(option);
+
+        async function fetchStockPrices() {
+            try {
+                const response = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&apikey=${apiKey}`);
+                const data = await response.json();
+                const timeSeries = data["Time Series (5min)"];
+                if (timeSeries) {
+                    stockData.length = 0; // Clear existing data
+                    Object.keys(timeSeries).reverse().forEach(timeKey => {
+                        const price = parseFloat(timeSeries[timeKey]["4. close"]);
+                        const time = new Date(timeKey);
+                        stockData.push([time, price]);
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching stock price:", error);
+            }
+            stockChart.setOption({
+                series: [
+                    {
+                        name: symbol,
+                        type: 'line',
+                        data: stockData,
+                        smooth: true,
+                        symbol: 'none'
+                    }
+                ]
+            });
+        }
+
+        // Fetch and update stock prices every 5 minutes
+        fetchStockPrices();
+        setInterval(fetchStockPrices, 300000);
+    </script>
+
+</body>
 </html>
